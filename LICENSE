@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright (c) 2025, Lea
+Copyright (c) 2025, Lea 'LeaDevelop' N.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -26,3 +26,34 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Important usage information
+
+1. File operations
+
+- This software moves files based on their modification dates
+- Users should maintain backups of their data before using this tool
+- The software creates quarterly directories (Q1-YEAR, Q2-YEAR, etc.)
+- Files are moved, not copied, to reduce storage usage
+
+2. Safety features
+
+- The software requires explicit user confirmation before operation
+- Locked files are automatically skipped
+- Operation logs are maintained for audit purposes
+- The executable and log files are protected from movement
+
+3. Usage guidelines
+
+- Designed for Windows operating systems
+- Users must have appropriate file system permissions
+- Not intended for use on system directories or critical paths
+- Users should test on non-critical data before deployment
+
+
+Third-Party components
+This software uses the following third-party modules:
+
+- psutil (BSD 3-Clause License) - https://github.com/giampaolo/psutil/blob/master/LICENSE
+- Additional components are from Python Standard Library under Python Software Foundation License - https://docs.python.org/3/license.html
