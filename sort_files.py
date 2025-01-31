@@ -10,7 +10,7 @@ import sys
 import argparse
 
 CURRENT_RELEVANT_TIME_FRAME = 90
-MAX_WORKERS = max(1, psutil.cpu_count(logical=True) // 2)
+MAX_WORKERS = max(1, psutil.cpu_count(logical=True))
 FILE_SORTER_LOG = "file_sorter.log"
 
 # Determine run mode and set directory
