@@ -154,7 +154,6 @@ if __name__ == "__main__":
         logging.info("Starting File sorting tool")
         logging.info(f"User confirmed. Starting file sorting in: {DIRECTORY_PATH}")
         sort_files(DIRECTORY_PATH)
-        print(f"\nFile sorting completed. Check {FILE_SORTER_LOG} for details.")
         print(f"\n\nFile sorting completed. Check {FILE_SORTER_LOG} for details.")
         # input("🏁 Press Enter to exit...")
     else:
