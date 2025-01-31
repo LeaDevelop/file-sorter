@@ -15,12 +15,14 @@ A Windows utility that automatically organizes files into quarterly folders base
 - Requires user confirmation before any operation
 - Automatically skips locked or in-use files
 - Maintains detailed operation logs
-- Protects system files (.exe and .log)
+- Skips system files (.exe and .log)
 - Checks for existing files at destination
 
 ## Usage
 
 1. Run the executable in the directory you want to organize
+   1. you can specify default directory in source code
+   2. user is able to start application with startup parameter `--path "C:\your\target\location"`
 2. Review and confirm the operation
 3. Monitor progress through console output
 4. Check logs for detailed operation history
