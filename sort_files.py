@@ -1,36 +1,22 @@
 # Copyright (c) 2025 Lea 'LeaDevelop' N.
 # Licensed under BSD 3-Clause License - see LICENSE file for details
 
-import os
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
+from threading import Event
+import os
 import logging
 import psutil
 import argparse
+import signal
 
 CURRENT_RELEVANT_TIME_FRAME = 90
 MAX_WORKERS = max(1, psutil.cpu_count(logical=True))
 FILE_SORTER_LOG = "file_sorter.log"
 DEFAULT_PATH_TO_SORT = r"C:\test\default-target"
 
-# Set up argument parser
-parser = argparse.ArgumentParser()
-parser.add_argument('--path', help='Target directory path (overrides default path)')
-
-# Parse arguments, use default if no path provided
-args = parser.parse_args()
-DIRECTORY_PATH = args.path if args.path else DEFAULT_PATH_TO_SORT
-
-# Set up logging
-log_file = os.path.join(DIRECTORY_PATH, FILE_SORTER_LOG)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_file),
-        logging.StreamHandler()
-    ]
-)
+# Global shutdown event
+shutdown_event = Event()
 
 
 def get_user_confirmation(target_path):
@@ -53,8 +39,8 @@ def get_user_confirmation(target_path):
     try:
         response = input().lower().strip()
         return response == 'y' or response == 'yes'
-    except Exception as e:
-        logging.error(f"Error getting user input: {str(e)}")
+    except (KeyboardInterrupt, EOFError):
+        logging.info("User interrupted the confirmation prompt")
         return False
 
 
@@ -67,8 +53,43 @@ def should_move_file(modification_date):
     return modification_date < cutoff_date
 
 
+def signal_handler(*_):
+    """Handle shutdown signals gracefully"""
+    print("\nShutdown signal received. Cleaning up...")
+    logging.info("Shutdown signal received. Waiting for ongoing operations to complete...")
+    shutdown_event.set()
+
+
+# Register signal handlers
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
+
+# Set up argument parser
+parser = argparse.ArgumentParser()
+parser.add_argument('--path', help='Target directory path (overrides default path)')
+
+# Parse arguments, use default if no path provided
+args = parser.parse_args()
+DIRECTORY_PATH = args.path if args.path else DEFAULT_PATH_TO_SORT
+
+# Set up logging
+log_file = os.path.join(DIRECTORY_PATH, FILE_SORTER_LOG)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file),
+        logging.StreamHandler()
+    ]
+)
+
+
 def move_file(file_path):
     """Move file to appropriate quarter directory based on last modified date."""
+    # Check if shutdown was requested
+    if shutdown_event.is_set():
+        return
+
     try:
         # Skip directories and special files
         if not os.path.isfile(file_path):
@@ -95,6 +116,10 @@ def move_file(file_path):
         year = modified_date.year
         quarter_dir = f"Q{quarter}-{year}"
         quarter_path = os.path.join(os.path.dirname(file_path), quarter_dir)
+
+        # Check for shutdown again before file operations
+        if shutdown_event.is_set():
+            return
 
         # Create quarter directory when it doesn't exist
         if not os.path.exists(quarter_path):
@@ -140,22 +165,37 @@ def sort_files(dir_path):
 
         # Use ThreadPoolExecutor with all available logical processors
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            executor.map(move_file, file_paths)
+            futures = [executor.submit(move_file, file_path) for file_path in file_paths]
 
-        logging.info("File sorting completed")
+            # Wait for all tasks to complete or shutdown
+            for future in futures:
+                if not shutdown_event.is_set():
+                    future.result()  # This will raise any exceptions that occurred
+
+        if shutdown_event.is_set():
+            logging.info("Graceful shutdown completed")
+        else:
+            logging.info("File sorting completed successfully")
 
     except Exception as e:
         logging.error(f"Error during file sorting: {str(e)}")
+    finally:
+        logging.info("Cleanup completed")
 
 
 if __name__ == "__main__":
-    # Get user confirmation before proceeding
-    if get_user_confirmation(DIRECTORY_PATH):
-        logging.info("Starting File sorting tool")
-        logging.info(f"User confirmed. Starting file sorting in: {DIRECTORY_PATH}")
-        sort_files(DIRECTORY_PATH)
-        print(f"\n\nFile sorting completed. Check {FILE_SORTER_LOG} for details.")
-        # input("🏁 Press Enter to exit...")
-    else:
-        logging.info("User cancelled operation")
-        print("\nOperation cancelled by user.")
+    try:
+        if get_user_confirmation(DIRECTORY_PATH):
+            logging.info("Starting File sorting tool")
+            logging.info(f"User confirmed. Starting file sorting in: {DIRECTORY_PATH}")
+            sort_files(DIRECTORY_PATH)
+            if not shutdown_event.is_set():
+                print(f"\n\nFile sorting completed. Check {FILE_SORTER_LOG} for details.")
+        else:
+            logging.info("User cancelled operation")
+            print("\nOperation cancelled by user.")
+    except KeyboardInterrupt:
+        print("\nReceived keyboard interrupt")
+    finally:
+        logging.info("Program terminated")
+        input("🏁 Press Enter to exit...")
