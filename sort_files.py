@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 import logging
 import psutil
-import sys
 import argparse
 
 CURRENT_RELEVANT_TIME_FRAME = 90
@@ -14,15 +13,13 @@ MAX_WORKERS = max(1, psutil.cpu_count(logical=True))
 FILE_SORTER_LOG = "file_sorter.log"
 DEFAULT_PATH_TO_SORT = r"C:\test\default-target"
 
-# Determine run mode and set directory
-if getattr(sys, 'frozen', False):
-    # Running as exe
-    DIRECTORY_PATH = os.path.dirname(sys.executable)
-else:
-    # Running as script - require path
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--path', required=True, help='Target directory path')
-    DIRECTORY_PATH = parser.parse_args().path
+# Set up argument parser
+parser = argparse.ArgumentParser()
+parser.add_argument('--path', help='Target directory path (overrides default path)')
+
+# Parse arguments, use default if no path provided
+args = parser.parse_args()
+DIRECTORY_PATH = args.path if args.path else DEFAULT_PATH_TO_SORT
 
 # Set up logging
 log_file = os.path.join(DIRECTORY_PATH, FILE_SORTER_LOG)
