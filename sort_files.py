@@ -33,16 +33,19 @@ logging.basicConfig(
 )
 
 
-def get_user_confirmation(directory):
+def get_user_confirmation(target_path):
     """
     Ask user for confirmation before proceeding with file sorting.
+    Parameters: target_path (str): The directory path where files will be sorted
     Returns True if user confirms, else False.
     """
     print("\nFile sorting tool")
     print("=====================")
-    print(f"\nTarget Directory: {directory}")
+    print("\nYou can specify a different directory using --path parameter")
+    print(f"Default directory: {DEFAULT_PATH_TO_SORT}")
+    print(f"\nCurrent selected target directory for file sorting: 🎯 {target_path}")
     print("\nThis tool will:")
-    print("1. Scan all files in the directory")
+    print("1. Scan all files in the target directory")
     print(f"2. Move files older than {CURRENT_RELEVANT_TIME_FRAME} days into quarter-based folders (Q1-YEAR, Q2-YEAR, etc.)")
     print(f"3. Skip locked files and maintain a detailed log - {FILE_SORTER_LOG}")
     print("\nAre you sure you want to proceed? (y/n): ", end='')
@@ -135,27 +138,25 @@ def sort_files(dir_path):
         logging.info(f"Found {len(file_paths)} files to process")
         logging.info(f"Using {MAX_WORKERS} worker threads")
 
-        # Use ThreadPoolExecutor with half of available logical processors
+        # Use ThreadPoolExecutor with all available logical processors
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
             executor.map(move_file, file_paths)
 
-        logging.info("File organization completed")
+        logging.info("File sorting completed")
 
     except Exception as e:
-        logging.error(f"Error during file organization: {str(e)}")
+        logging.error(f"Error during file sorting: {str(e)}")
 
 
 if __name__ == "__main__":
-    logging.info("Starting File sorting tool")
-
     # Get user confirmation before proceeding
     if get_user_confirmation(DIRECTORY_PATH):
-        logging.info(f"User confirmed. Starting file organization in: {DIRECTORY_PATH}")
+        logging.info("Starting File sorting tool")
+        logging.info(f"User confirmed. Starting file sorting in: {DIRECTORY_PATH}")
         sort_files(DIRECTORY_PATH)
         print(f"\nFile sorting completed. Check {FILE_SORTER_LOG} for details.")
+        print(f"\n\nFile sorting completed. Check {FILE_SORTER_LOG} for details.")
+        # input("🏁 Press Enter to exit...")
     else:
         logging.info("User cancelled operation")
         print("\nOperation cancelled by user.")
-
-    # Keep console window open
-    input("\nPress Enter to exit...")
