@@ -12,6 +12,7 @@ import argparse
 CURRENT_RELEVANT_TIME_FRAME = 90
 MAX_WORKERS = max(1, psutil.cpu_count(logical=True))
 FILE_SORTER_LOG = "file_sorter.log"
+DEFAULT_PATH_TO_SORT = r"C:\test\default-target"
 
 # Determine run mode and set directory
 if getattr(sys, 'frozen', False):
