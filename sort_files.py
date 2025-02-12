@@ -4,7 +4,9 @@
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
+from time import sleep
 import os
+import sys
 import logging
 import psutil
 import argparse
@@ -73,7 +75,7 @@ args = parser.parse_args()
 DIRECTORY_PATH = args.path if args.path else DEFAULT_PATH_TO_SORT
 
 # Set up logging
-log_file = os.path.join(DIRECTORY_PATH, FILE_SORTER_LOG)
+log_file = os.path.join(os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__)), FILE_SORTER_LOG)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -190,12 +192,14 @@ if __name__ == "__main__":
             logging.info(f"User confirmed. Starting file sorting in: {DIRECTORY_PATH}")
             sort_files(DIRECTORY_PATH)
             if not shutdown_event.is_set():
-                print(f"\n\nFile sorting completed. Check {FILE_SORTER_LOG} for details.")
+                logging.info("Program terminated")
+                sleep(0.5)
+                print(f"\nFile sorting completed. Check {FILE_SORTER_LOG} for details.")
         else:
             logging.info("User cancelled operation")
             print("\nOperation cancelled by user.")
     except KeyboardInterrupt:
         print("\nReceived keyboard interrupt")
     finally:
-        logging.info("Program terminated")
-        input("🏁 Press Enter to exit...")
+        sleep(0.5)
+        print("\n🏁 Program completed successfully!")
