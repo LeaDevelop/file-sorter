@@ -8,7 +8,7 @@ A Windows utility that automatically organizes files into quarterly folders base
 - Moves files older than 90 days
 - Preserves newer files in the root directory
 - Uses multi-threading for efficient processing
-- Handles large numbers of files (10000+)
+- Can handle large numbers of files. Tests for releases are done on ~10000 files.
 
 ## Safety Features
 
