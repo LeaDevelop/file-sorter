@@ -58,3 +58,8 @@ After:
 - No installation required
 - Runs from executable
 - Creates logs in working directory
+
+## Future improvements in TODO
+- Prohibit essential OS directories
+- Linux support
+- Improve logging
